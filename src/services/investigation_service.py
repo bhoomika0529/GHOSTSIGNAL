@@ -91,6 +91,12 @@ def analyze_review(text: str) -> dict[str, Any]:
         "models_ready"  : dict — {"sentiment": bool, "authenticity": bool}
         "sentiment"     : dict — SinglePrediction fields (see below), or None
         "authenticity"  : dict — SinglePrediction fields (see below), or None
+        "is_short_text" : bool — True when the input contains fewer than 5 words.
+                                 When True the UI should warn that the model has
+                                 limited text to work with and that the probability
+                                 scores may appear extreme due to very few active
+                                 features.  Predictions and probabilities are
+                                 unchanged regardless of this flag.
 
     Each classifier sub-dict contains:
         "label"           : str   — predicted class, "uncertain", or "unavailable"
@@ -109,6 +115,8 @@ def analyze_review(text: str) -> dict[str, Any]:
     - A "FAKE" authenticity label means the text resembles writing patterns
       of reviewers labeled fake in the training dataset.  It does NOT prove
       the submitted review is fraudulent.
+    - is_short_text is a display hint only.  It never alters predictions,
+      probabilities, labels, or any classifier output.
     - This function never raises; all failures are captured into the dict.
     """
     # ------------------------------------------------------------------
@@ -122,7 +130,18 @@ def analyze_review(text: str) -> dict[str, Any]:
             "models_ready": _safe_model_status(),
             "sentiment": None,
             "authenticity": None,
+            "is_short_text": False,
         }
+
+    # ------------------------------------------------------------------
+    # Short-text detection (display hint only — does not affect predictions)
+    # ------------------------------------------------------------------
+    # Fewer than 5 words means very few TF-IDF features fire, which can
+    # produce extreme-looking probability scores from just one or two
+    # high-magnitude vocabulary coefficients.  The prediction is not
+    # suppressed or adjusted; the flag is exposed so the UI can warn the user.
+    _SHORT_TEXT_WORD_THRESHOLD = 5
+    is_short_text: bool = len(text.split()) < _SHORT_TEXT_WORD_THRESHOLD
 
     # ------------------------------------------------------------------
     # Classification and dataclass conversion
@@ -148,6 +167,7 @@ def analyze_review(text: str) -> dict[str, Any]:
             "models_ready": _safe_model_status(),
             "sentiment": None,
             "authenticity": None,
+            "is_short_text": is_short_text,
         }
 
     return {
@@ -157,4 +177,5 @@ def analyze_review(text: str) -> dict[str, Any]:
         "models_ready": _safe_model_status(),
         "sentiment": result_dict["sentiment"],
         "authenticity": result_dict["authenticity"],
+        "is_short_text": is_short_text,
     }

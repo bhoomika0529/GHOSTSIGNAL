@@ -219,6 +219,18 @@ def main() -> None:
         if preview:
             st.caption(f'Analyzed: "{preview}"')
 
+        # Short-text warning — displayed when input has fewer than 5 words.
+        # The prediction and probabilities are unchanged; this note simply
+        # alerts the user that very few model features were active.
+        if result.get("is_short_text"):
+            st.warning(
+                "⚠ **Short input detected.** This review contains fewer than 5 words. "
+                "Very short text activates very few model features, which can produce "
+                "extreme-looking probability scores. "
+                "The prediction may not reflect genuine model certainty.",
+                icon="⚠️",
+            )
+
         # --- Results columns ---
         col_sent, col_auth = st.columns(2, gap="large")
 
@@ -237,6 +249,14 @@ def main() -> None:
             if pred.get("caveat"):
                 with st.expander("ℹ What does this mean?", expanded=False):
                     st.caption(pred["caveat"])
+                    st.caption(
+                        "⚠ **Binary classification only.** "
+                        "This model was trained on 1–2 star reviews (Negative) and "
+                        "4–5 star reviews (Positive). "
+                        "It has no Neutral class. "
+                        "Reviews with moderate or mixed language are forced into one "
+                        "of these two categories."
+                    )
 
         with col_auth:
             pred = result.get("authenticity") or {}
@@ -254,10 +274,16 @@ def main() -> None:
                 with st.expander("ℹ What does this mean?", expanded=False):
                     st.caption(pred["caveat"])
                     st.caption(
-                        "⚠ **Important:** these labels reflect patterns in a training "
-                        "dataset of reviewer profiles — not a verified determination that "
-                        "this specific review is fraudulent or genuine. "
-                        "Do not use this result as conclusive evidence."
+                        "⚠ **Important:** "
+                        "These labels are reviewer-associated proxy labels derived from "
+                        "Amazon reviewer account metadata — they are not a verified "
+                        "determination that this specific review is fraudulent or genuine. "
+                        "This model was not specifically trained to detect promotional or "
+                        "marketing language. "
+                        "Enthusiastic or promotional wording may receive a high HONEST "
+                        "score because it overlaps with the writing patterns of reviewers "
+                        "labeled honest in the training data. "
+                        "Do not use this prediction as proof of any claim."
                     )
 
         # --- Disclaimer footer ---

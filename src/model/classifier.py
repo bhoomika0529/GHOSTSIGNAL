@@ -83,14 +83,28 @@ class GhostSignalClassifier:
 
     _SENTIMENT_CAVEAT = (
         "Sentiment is derived from star ratings (1-2 → Negative, 4-5 → Positive). "
-        "It is not a human-annotated sentiment label. "
+        "This model supports only two classes: Positive and Negative. "
+        "It has no Neutral class — reviews with moderate or mixed language are "
+        "forced into one of these two categories and may be misclassified. "
+        "The underlying TF-IDF with unigram and bigram features may not reliably "
+        "capture negation, sarcasm, or relationships between clauses "
+        "(for example, 'not bad' can be partly overridden by the strong individual "
+        "negative signals of the words 'not' and 'bad'). "
         "Probabilities are model scores, not calibrated confidence values."
     )
     _AUTHENTICITY_CAVEAT = (
-        "Authenticity labels are reviewer-associated, not verified per-review fraud labels. "
-        "FAKE means the reviewer was labeled fake in the source dataset; "
-        "HONEST means the reviewer was labeled honest. "
-        "This model cannot verify the authenticity of an individual review in isolation. "
+        "Authenticity labels are reviewer-associated proxy labels, "
+        "not verified per-review fraud determinations. "
+        "FAKE means the reviewer account was labeled fake in the Amazon source dataset; "
+        "HONEST means the reviewer account was labeled honest. "
+        "This label is propagated from the reviewer profile to all their reviews — "
+        "it does not reflect a judgment about the individual review submitted here. "
+        "This model was not specifically trained to detect promotional or marketing "
+        "language. Text written in an enthusiastic or promotional style may receive "
+        "a high HONEST score because such language overlaps with writing patterns "
+        "of reviewers labeled honest in the training data. "
+        "A prediction of HONEST is not proof that this review is genuine. "
+        "A prediction of FAKE is not proof that this review is fraudulent. "
         "Probabilities are model scores, not calibrated confidence values."
     )
 
